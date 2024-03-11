@@ -1,5 +1,5 @@
 import { adminTrade, userModel, userTrade, tradeQuantity } from "../../database";
-import { tradeHistoryFun, userProfitAndLossData } from "../../helpers/kiteConnect/index";
+import { userProfitAndLossData } from "../../helpers/kiteConnect/index";
 import { apiResponse } from "../../common";
 import fund from "../../helpers/funding.json";
 import { responseMessage } from "../../helpers/response";
@@ -67,16 +67,17 @@ export const trade_get = async (req: Request, res: Response) => {
     try {
         const alltrade = [];
         if (body.type === 0) { //admin
-            const tradedata = await adminTrade.find();
-            tradedata.forEach(data => {
-                if ((data.sellPrice === null || data.sellPrice === 0) && data.sellAT === null) {
-                    alltrade.push(data);
-                }
+
+            const tradedata = await adminTrade.find({
+                $or: [
+                    { sellPrice: { $eq: null } },
+                    { sellPrice: { $eq: false } },
+                    { sellPrice: { $eq: 0 } }
+                ],
+                sellAT: { $eq: null }
             });
+            return res.status(200).json(new apiResponse(200, "all trade data", { tradedata }, {}));
         }
-
-        return res.status(200).json(new apiResponse(200, "all trade data", { alltrade }, {}));
-
     } catch (error) {
         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
     }
@@ -85,25 +86,50 @@ export const trade_get = async (req: Request, res: Response) => {
 
 //get trade data for user
 
+// export const user_trade_get = async (req: Request, res: Response) => {
+//     let body = req.body;
+//     try {
+//         const alltrade = [];
+//         if (body.type === 1 && body.id !== null) { //only user data 
+//             const tradedata = await userTrade.find();
+//             tradedata.forEach(data => {
+//                 let e = data.trade
+//                 for (data of e) {
+
+//                     if (String(data.user_id) === String(body.id) && data.isSelled === false) {
+//                         alltrade.push(e)
+//                     }
+//                 }
+
+//             });
+//         }
+
+//         return res.status(200).json(new apiResponse(200, "all trades data", { alltrade }, {}));
+
+//     } catch (error) {
+//         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+//     }
+
+// }
 export const user_trade_get = async (req: Request, res: Response) => {
     let body = req.body;
     try {
-        const alltrade = [];
+        let tradedata;
         if (body.type === 1 && body.id !== null) { //only user data 
-            const tradedata = await userTrade.find();
-            tradedata.forEach(data => {
-                let e = data.trade
-                for (data of e) {
-
-                    if (String(data.user_id) === String(body.id) && data.isSelled === false) {
-                        alltrade.push(e)
+            tradedata = await userTrade.aggregate([
+                {
+                    $unwind: "$trade"
+                },
+                {
+                    $match: {
+                        "trade.user_id": new ObjectId(body.id),
+                        "trade.isSelled": false,
                     }
-                }
-
-            });
+                },
+            ]);
         }
 
-        return res.status(200).json(new apiResponse(200, "all trades data", { alltrade }, {}));
+        return res.status(200).json(new apiResponse(200, "all trades data", { tradedata }, {}));
 
     } catch (error) {
         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
@@ -114,47 +140,51 @@ export const user_trade_get = async (req: Request, res: Response) => {
 export const profit_loss = async (req: Request, res: Response) => {
     let body = req.body;
     const customizedTime = usTime.toLocaleDateString('en-US', options);
+    console.log(customizedTime);
+    // try {
+    //     //for single day
+    //     if (body.type === 0) { // admin
+    //         let money = 0;
+    //         const buyTradeData = await userTrade.find({ tradeTime: customizedTime });
 
+    //         if (buyTradeData) {
+    //             buyTradeData.forEach((e) => {
+    //                 e['trade'].forEach((data) => {
+    //                     if (data.isSelled === true) {
+    //                         money = money + data.profit;
+    //                     }
+    //                 })
+    //             })
+    //         }
+    //         return res.status(200).json(new apiResponse(200, "data of profit and loss is", money, {}));
+    //     }
+    // } catch (error) {
+    //     return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+    // }
     try {
         //for single day
         if (body.type === 0) { // admin
             let money = 0;
-            const buyTradeData = await userTrade.find({ tradeTime: customizedTime });
+            const buyTradeData = await userTrade.aggregate([
+                {
+                    $unwind: '$trade'
+                },
+                {
+                    $match: {
+                        "tradeTime": customizedTime,
+                        "trade.isSelled": true
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalProfit: { $sum: '$trade.profit' },
+                    }
+                }
+            ]);
 
-            if (buyTradeData) {
-                buyTradeData.forEach((e) => {
-                    e['trade'].forEach((data) => {
-                        if (data.isSelled === true) {
-                            money = money + data.profit;
-                        }
-                    })
-                })
-            }
-            return res.status(200).json(new apiResponse(200, "data of profit and loss is", money, {}));
+            return res.status(200).json(new apiResponse(200, "data of profit and loss is", buyTradeData, {}));
         }
-        // else if (body.type === 1) {
-        //     let invested = 0;
-        //     let totalinvested = 0;
-        //     let money = 0;
-        //     const buyTradeData = await userTrade.find();
-
-        //     if (buyTradeData) {
-        //         buyTradeData.forEach((e) => {
-        //             e['trade'].forEach((data) => {
-        //                 if (data.isSelled === true) {
-        //                     money = money + data.profit;
-        //                     invested = invested + (data.buyKitePrice * data.quantity);
-        //                 }
-        //             })
-        //             console.log(invested)
-        //             totalinvested = invested * e.loatSize
-        //         })
-        //     }
-
-        //     console.log(totalinvested);
-        //     const calculation = (money / totalinvested) * 100;
-        //     return res.status(200).json(new apiResponse(200, "data of profit and loss is", { money, calculation }, {}));
-        // }
     } catch (error) {
         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
     }
@@ -163,23 +193,55 @@ export const profit_loss = async (req: Request, res: Response) => {
 // API for calculate investment money
 
 export const totalInverstment = async (req: Request, res: Response) => {
-    try {
-        const tradedata = await userTrade.find();
-        let invested = 0;
-        let totalinvested = 0;
+    // try {
+    //     const tradedata = await userTrade.find();
+    //     let invested = 0;
+    //     let totalinvested = 0;
 
-        if (tradedata) {
-            tradedata.forEach((e) => {
-                e['trade'].forEach((data) => {
-                    if (data.isSelled === false) {
-                        invested = invested + (data.buyKitePrice * data.quantity);
+    //     if (tradedata) {
+    //         tradedata.forEach((e) => {
+    //             e['trade'].forEach((data) => {
+    //                 if (data.isSelled === false) {
+    //                     invested = invested + (data.buyKitePrice * data.quantity);
+    //                 }
+    //             })
+    //             totalinvested = invested * (e.loatSize || 1)
+    //             console.log(totalinvested)
+    //         })
+    //     }
+    //     return res.status(200).json(new apiResponse(200, "data of total investment", { totalinvested }, {}));
+    // } catch (error) {
+    //     return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+    // }
+    try {
+        const tradedata = await userTrade.aggregate([
+            {
+                $unwind: "$trade"
+            },
+            {
+                $match: {
+                    "trade.isSelled": false,
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalInvested: {
+                        $sum: {
+                            $multiply: ["$trade.buyKitePrice", "$trade.quantity"]
+                        }
                     }
-                })
-                totalinvested = invested * (e.loatSize || 1)
-                console.log(totalinvested)
-            })
-        }
-        return res.status(200).json(new apiResponse(200, "data of total investment", { totalinvested }, {}));
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    totalInvested: 1
+                }
+            }
+        ]);
+
+        return res.status(200).json(new apiResponse(200, "data of total investment", { tradedata }, {}));
     } catch (error) {
         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
     }
@@ -187,15 +249,55 @@ export const totalInverstment = async (req: Request, res: Response) => {
 // API market value
 
 export const marketValue = async (req: Request, res: Response) => {
-    try {
-        const tradedata = await userTrade.find();
-        const priceArray = tradedata.map((e) => {
-            const filteredTrades = e['trade'].filter((data) => !data.isSelled);
-            const totalQty = filteredTrades.reduce((sum, trade) => sum + trade.quantity, 0);
-            return totalQty !== 0 ? { table: { tradeSymbol: filteredTrades[0].tradingsymbol, totalQty } } : null;
-        }).filter(Boolean);
+    // try {
+    //     const tradedata = await userTrade.find();
+    //     const priceArray = tradedata.map((e) => {
+    //         const filteredTrades = e['trade'].filter((data) => !data.isSelled);
+    //         const totalQty = filteredTrades.reduce((sum, trade) => sum + trade.quantity, 0);
+    //         return totalQty !== 0 ? { table: { tradeSymbol: filteredTrades[0].tradingsymbol, totalQty } } : null;
+    //     }).filter(Boolean);
 
-        return res.status(200).json(new apiResponse(200, "data of total investment", { priceArray }, {}));
+    //     return res.status(200).json(new apiResponse(200, "data of total investment", { priceArray }, {}));
+    // } catch (error) {
+    //     return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+    // }
+    try {
+        const tradedata = await userTrade.aggregate([
+            {
+                $unwind: "$trade"
+            },
+            {
+                $match: {
+                    $or: [
+                        { "trade.isSelled": null },
+                        { "trade.isSelled": false },
+                        { "trade.isSelled": undefined },
+                        { "trade.isBuy": true },
+                    ]
+                }
+            },
+            {
+                $group: {
+                    _id: "$tradingsymbol",
+                    totalQty: { $sum: "$trade.quantity" }
+                }
+            },
+            {
+                $match: {
+                    totalQty: { $ne: 0 }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    tradeSymbol: "$_id",
+                    totalQty: "$totalQty"
+
+                }
+            }
+        ]);
+
+        return res.status(200).json(new apiResponse(200, "data of total investment", { tradedata }, {}));
     } catch (error) {
         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
     }
@@ -276,39 +378,101 @@ export const getKiteLoginUserDetails = async (req: Request, res: Response) => {
 
 export const getUnlinkUserHistory = async (req: Request, res: Response) => {
     try {
+        // const body = req.body;
+        // const userdata = await userModel.findById({ _id: body.id });
+        // let responseData = [];
+
+        // if (userdata) {
+        //     const userTradeData = await userTrade.find();
+        //     if (userTradeData) {
+        //         userTradeData.forEach((e) => {
+        //             e['trade'].forEach((data) => {
+
+        //                 if (data.msg == "user not login" && String(data.user_id) === String(body.id) && !data.buyOrderId) {
+        //                     if (data.buytradeStatus == "user not login") {
+        //                         responseData.push({
+        //                             date: e.tradeTime,
+        //                             index: e.tradingsymbol,
+        //                             transaction_type: "BUY",
+        //                             reason: data.msg,
+        //                             linkTime: data.lastLoginAt,
+        //                             unlinkTime: data.lastLogOutAt,
+        //                         })
+        //                     } else {
+        //                         responseData.push({
+        //                             date: e.tradeTime,
+        //                             index: e.tradingsymbol,
+        //                             transaction_type: "SELL",
+        //                             reason: data.msg
+        //                         })
+        //                     }
+        //                 }
+        //             })
+        //         })
+        //     }
+        //     return res.status(200).json(new apiResponse(200, "unliked user data", responseData, {}))
+        // } else {
+        //     return res.status(402).json(new apiResponse(402, "User Not found", {}, {}));
+        // }
         const body = req.body;
         const userdata = await userModel.findById({ _id: body.id });
-        let responseData = [];
 
         if (userdata) {
-            const userTradeData = await userTrade.find();
-            if (userTradeData) {
-                userTradeData.forEach((e) => {
-                    e['trade'].forEach((data) => {
-
-                        if (data.msg == "user not login" && String(data.user_id) === String(body.id) && !data.buyOrderId) {
-                            if (data.buytradeStatus == "user not login") {
-                                responseData.push({
-                                    date: e.tradeTime,
-                                    index: e.tradingsymbol,
-                                    transaction_type: "BUY",
-                                    reason: data.msg,
-                                    linkTime: data.lastLoginAt,
-                                    unlinkTime: data.lastLogOutAt,
-                                })
-                            } else {
-                                responseData.push({
-                                    date: e.tradeTime,
-                                    index: e.tradingsymbol,
-                                    transaction_type: "SELL",
-                                    reason: data.msg
-                                })
+            const userTradeData = await userTrade.aggregate([
+                {
+                    $unwind: "$trade"
+                },
+                {
+                    $match: {
+                        "trade.msg": "user not login",
+                        "trade.user_id": new ObjectId(body.id),
+                        $or: [{
+                            "trade.buyOrderId": undefined
+                        }, {
+                            "trade.buyOrderId": false
+                        },
+                        {
+                            "trade.buyOrderId": null,
+                        }]
+                    }
+                }, {
+                    $project: {
+                        _id: 0,
+                        tradeTime: 1,
+                        tradingsymbol: 1,
+                        "trade.msg": 1,
+                        "trade.lastLoginAt": 1,
+                        "trade.lastLogOutAt": 1,
+                        "trade.buytradeStatus": 1
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        data: {
+                            $push: {
+                                date: "$tradeTime",
+                                index: "$tradingsymbol",
+                                transaction_type: {
+                                    $cond: {
+                                        if: { $eq: ["$trade.buytradeStatus", "user not login"] },
+                                        then: "BUY",
+                                        else: "SELL"
+                                    }
+                                },
+                                reason: "$trade.msg",
+                                linkTime: "$trade.lastLoginAt",
+                                unlinkTime: "$trade.lastLogOutAt"
                             }
                         }
-                    })
-                })
-            }
-            return res.status(200).json(new apiResponse(200, "unliked user data", responseData, {}))
+                    }
+                }, {
+                    $project: {
+                        _id: 0,
+                    }
+                }
+            ])
+            return res.status(200).json(new apiResponse(200, "unliked user data", userTradeData, {}))
         } else {
             return res.status(402).json(new apiResponse(402, "User Not found", {}, {}));
         }
@@ -529,6 +693,64 @@ export const tradeHistory = async (req: Request, res: Response) => {
 
 export const subtradeHistory = async (req: Request, res: Response) => {
     const body = req.body;
+    // try {
+    //     const alltrade = [];
+    //     let tradeData;
+
+    //     if (body.tradeTime === null) {
+    //         tradeData = await userTrade.find();
+    //     } else if (body.tradeTime !== null) {
+    //         tradeData = await userTrade.find({ tradeTime: body.tradeTime });
+    //         console.log('tradeData :>> ', tradeData);
+    //     }
+
+    //     for (const e of tradeData) {
+    //         const userdata = e['trade'];
+    //         console.log('userdata :>> ', userdata);
+
+    //         for (const data of userdata) {
+    //             console.log(data);
+    //             if (data.user_id == body.id) {
+    //                 console.log("data", data)
+    //                 const id = data.user_id;
+    //                 if (data.buyKitePrice !== 0 && data.isSelled === false) {
+    //                     const findUserData: any = await userModel.findById({ _id: id });
+    //                     if (findUserData) {
+    //                         alltrade.push({
+    //                             date: e.tradeTime,
+    //                             StockName: data.tradingsymbol,
+    //                             BuyPrice: data.buyKitePrice,
+    //                             SellPrice: "-",
+    //                             BuyStatus: data.buytradeStatus,
+    //                             SellStatus: "-",
+    //                             profit: "-"
+
+    //                         });
+    //                     }
+    //                 }
+    //                 else if (data.isSelled === true) {
+    //                     const findUserData = await userModel.findById({ _id: id });
+    //                     if (findUserData) {
+    //                         alltrade.push({
+    //                             date: e.tradeTime,
+    //                             StockName: data.tradingsymbol,
+    //                             BuyPrice: data.buyKitePrice,
+    //                             SellPrice: data.sellKitePrice,
+    //                             BuyStatus: data.buytradeStatus,
+    //                             SellStatus: data.selltradeStatus,
+    //                             profit: data.profit
+    //                         });
+    //                     }
+    //                 }
+    //             } []
+
+
+    //         }
+    //     }
+    //     return res.status(200).json(new apiResponse(200, "trade history", { alltrade }, {}));
+    // } catch (error) {
+    //     return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+    // }
     try {
         const alltrade = [];
         let tradeData;
@@ -539,6 +761,97 @@ export const subtradeHistory = async (req: Request, res: Response) => {
             tradeData = await userTrade.find({ tradeTime: body.tradeTime });
             console.log('tradeData :>> ', tradeData);
         }
+
+
+        const data = await userTrade.aggregate([
+            { $unwind: "$trade" },
+            {
+                $match: {
+                    $or: [
+                        { "trade.tradeTime": body.tradeTime },
+                        { "trade.tradeTime": { $exists: false } }
+                    ],
+                    "trade.user_id": new ObjectId(body.id)
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    tradeTime: 1,
+                    tradingsymbol: 1,
+                    "trade.buyKitePrice": 1,
+                    "trade.sellKitePrice": 1,
+                    "trade.selltradeStatus": 1,
+                    "trade.buytradeStatus": 1,
+                    "trade.profit": 1
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    data: {
+                        $push: {
+                            $cond: {
+                                if: {
+                                    $and: [
+                                        { $ne: ["$trade.buyKitePrice", 0] },
+                                        { $eq: ["$trade.isSelled", false] }
+                                    ]
+                                },
+                                then: {
+                                    date: "$tradeTime",
+                                    StockName: "$tradingsymbol",
+                                    BuyPrice: "$trade.buyKitePrice",
+                                    SellPrice: "-",
+                                    BuyStatus: "$trade.buytradeStatus",
+                                    SellStatus: "-",
+                                    profit: "-"
+                                },
+                                else: {
+                                    date: "$tradeTime",
+                                    StockName: "$tradingsymbol",
+                                    BuyPrice: "$trade.buyKitePrice",
+                                    SellPrice: "$trade.sellKitePrice",
+                                    BuyStatus: "$trade.buytradeStatus",
+                                    SellStatus: "$trade.selltradeStatus",
+                                    profit: "$trade.profit"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]);
+
+        //                 if (data.buyKitePrice !== 0 && data.isSelled === false) {
+        //                     const findUserData: any = await userModel.findById({ _id: id });
+        //                     if (findUserData) {
+        //                         alltrade.push({
+        //                             date: e.tradeTime,
+        //                             StockName: data.tradingsymbol,
+        //                             BuyPrice: data.buyKitePrice,
+        //                             SellPrice: "-",
+        //                             BuyStatus: data.buytradeStatus,
+        //                             SellStatus: "-",
+        //                             profit: "-"
+
+        //                         });
+        //                     }
+        //                 }
+        //                 else if (data.isSelled === true) {
+        //                     const findUserData = await userModel.findById({ _id: id });
+        //                     if (findUserData) {
+        //                         alltrade.push({
+        //                             date: e.tradeTime,
+        //                             StockName: data.tradingsymbol,
+        //                             BuyPrice: data.buyKitePrice,
+        //                             SellPrice: data.sellKitePrice,
+        //                             BuyStatus: data.buytradeStatus,
+        //                             SellStatus: data.selltradeStatus,
+        //                             profit: data.profit
+        //                         });
+        //                     }
+        //                 }
 
         for (const e of tradeData) {
             const userdata = e['trade'];
