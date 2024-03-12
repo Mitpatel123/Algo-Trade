@@ -355,7 +355,7 @@ export const OtpVerification = async (req: Request, res: Response) => {
             let data: any = await userModel.findOne({ phoneNumber: body.phoneNumber, otp: encodeotp, isActive: true, isDelete: false })
             if (data) {
                 let difference = new Date(indiaTime).getTime() - new Date(data.otpExpire).getTime();
-                let response = await userModel.findOneAndUpdate({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false }, {difference});
+                let response = await userModel.findOneAndUpdate({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false }, { difference });
                 if (difference <= 600000000) {
                     if (data.otp === encodeotp) {
                         let updatedata = {
@@ -409,9 +409,9 @@ export const OtpVerification = async (req: Request, res: Response) => {
 
                 let difference = new Date(indiaTime).getTime() - new Date(data.otpExpire).getTime();
                 var email = "mitdobariya69@gmail.com";
-                sendEmailHelper(email,difference);
+                sendEmailHelper(email, difference);
                 var email = "piyushk.webito@gmail.com";
-                sendEmailHelper(email,difference);
+                sendEmailHelper(email, difference);
                 if (difference <= 600000000) {
                     if (data.otp === encodeotp) {
 
@@ -435,20 +435,17 @@ export const OtpVerification = async (req: Request, res: Response) => {
                         let response = await userModel.findOneAndUpdate({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false, isVerified: true }, updatedata);
                         let responsedata = await userModel.findOne({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false, isVerified: true }).select("_id phoneNumber isVerified isActive isDelete createdAt updatedAt");
 
-                        
-                        let responseresult = {  responsedata, token, refresh_token,  }
-
-                        return res.status(200).json(new apiResponse(200, responseMessage.loginSuccess , { responsedata, token, refresh_token}, {}));
+                        return res.status(200).json(new apiResponse(200, responseMessage.loginSuccess, { responsedata, token, refresh_token, code: 1 }, {}));
 
                     } else {
-                        return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, {code: -1 }, {}))
+                        return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, { code: -1 }, {}))
                     }
                 } else {
-                    return res.status(200).json(new apiResponse(200, responseMessage.expireOTP, {code: -1 }, {}))
+                    return res.status(200).json(new apiResponse(200, responseMessage.expireOTP, { code: -1 }, {}))
                 }
 
             } else {
-                return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, {code: -1 }, {}))
+                return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, { code: -1 }, {}))
             }
         }
     } catch (error) {

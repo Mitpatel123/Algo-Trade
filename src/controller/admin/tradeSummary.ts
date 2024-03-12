@@ -58,8 +58,8 @@ export const get_user_quantity = async (req: Request, res: Response) => {
         console.error('Error:', error);
         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
     }
- }
- 
+}
+
 
 
 //get trade data for admin
@@ -129,10 +129,12 @@ export const user_trade_get = async (req: Request, res: Response) => {
                     }
                 },
             ]);
+
+            console.log(tradedata);
         }
 
         return res.status(200).json(new apiResponse(200, "all trades data", { tradedata }, {}));
-     } catch (error) {
+    } catch (error) {
         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
     }
 
@@ -341,7 +343,7 @@ export const getKiteLoginUserDetails = async (req: Request, res: Response) => {
         let returnData;
         let data;
 
-        let userData = await userModel.find({}, { fullname: 1, email: 1, z_user_id: 1, plan: 1, phoneNumber: 1, isActive: 1 });
+        let userData = await userModel.find({ isVerified: true, isDelete: false, isKiteLogin: true }, { fullname: 1, email: 1, z_user_id: 1, plan: 1, phoneNumber: 1, isActive: 1 });
         console.log(userData);
 
         if (userData) {
@@ -357,10 +359,9 @@ export const getKiteLoginUserDetails = async (req: Request, res: Response) => {
                     }
                 }
             ])
+            console.log(data);
             returnData = data.map(data => {
                 let user = userData.find(user => String(user._id) == data._id);
-
-
                 return { user, data }
             });
 

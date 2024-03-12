@@ -23,26 +23,23 @@ router.patch('/updateuser', userValidation.updateuser, userController.updateUser
 router.post('/kitelogout', userController.kitelogout) //complete
 // router.use(userJWT)
 router.post('/buyPlan', planDetails.BuyPlan) //complete
-router.post('/req',test_1)
+router.post('/req', test_1)
 
+//set quantity API
+router.post('/quantity', tradeAction.getQuantity) //complete
 
 
 //delete user
 router.delete('/delete', userValidation.deletes, userController.deleteuser) //complete
 
-//buy plan
-router.post('/buyPlan', planDetails.BuyPlan) //complete
-
 //login to the kite
 router.post('/getzeroghadata', userController.getUser) //complete
-
-//kite logout
 
 // router.post('/req',test_1)
 
 router.get('/generate-sha256')
-router.post('/req',test_1)
-router.post('/test1',testkite)
+router.post('/req', test_1)
+router.post('/test1', testkite)
 
 // router.use(userJWT)
 export const userRouter = router

@@ -28,13 +28,12 @@ function generateRandomNumber() {
 
 // Generate and print a random 5-digit number
 
-
-
 export const buystock = async (req: Request, res: Response) => {
     try {
         const random5DigitNumber = generateRandomNumber();
         let userTradeEnter: any = [];
         const body = req.body
+        let index = body.index
         let adminTradeEnter;
         if (body.order_type === "MARKET") {
 
@@ -69,8 +68,8 @@ export const buystock = async (req: Request, res: Response) => {
         });
         console.log(alluserdata);
         const promises = alluserdata.map(async userData => {
-            const quantityObj = await tradeQuantity.findOne({ user_id: userData.id });
-            return buyTradeFunction(req, res, userData, body, resultAdminTradeEnter, quantityObj);
+            const quantityObj = await tradeQuantity.findOne({ user_id: userData.id, [`${index}.symbol`]: index }, { [`${index}`]: 1, _id: 0 });
+            return buyTradeFunction(req, res, userData, body, resultAdminTradeEnter, quantityObj[index]);
         });
 
         const userTradeResults = await Promise.all(promises);
@@ -125,7 +124,7 @@ export const sellstock = async (req: Request, res: Response) => {
 
 export const getQuantity = async (req: Request, res: Response) => {
     try {
-        const { id, quantity } = req.body;
+        const { id, index, quantity } = req.body;
 
         const userData = await userModel.findById(id);
 
@@ -145,12 +144,16 @@ export const getQuantity = async (req: Request, res: Response) => {
             return res.status(400).json(new apiResponse(400, "User verification is required", {}, {}));
         }
 
-        const updateOptions = { upsert: true, new: true, setDefaultsOnInsert: true };
+        const updateData = {
+            [`${index}.quantity`]: quantity,
+            [`${index}.setAt`]: indiaTime,
+            [`${index}.symbol`]: index,
+        };
 
         const result = await tradeQuantity.findOneAndUpdate(
             { user_id: id },
-            { $set: { quantity, setAt: indiaTime } },
-            updateOptions
+            { $set: updateData },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
         );
 
         const message = quantity.length === 0 ? "Quantity added successfully" : "Quantity updated successfully";
@@ -160,6 +163,7 @@ export const getQuantity = async (req: Request, res: Response) => {
         return res.status(500).json(new apiResponse(500, "Internal Server Error", {}, error));
     }
 };
+
 
 //set the request token in the data base
 
@@ -208,7 +212,7 @@ export const getBuyPayload = async (req: Request, res: Response) => {
         const exchange_value = [...new Set(tradingsymbolfiltered.map(item => item.exchange))]
 
 
-        return res.status(200).json(new apiResponse(200, "index", exchange_value, {unique_date,symbol})); 
+        return res.status(200).json(new apiResponse(200, "index", exchange_value, { unique_date, symbol }));
 
     } catch (error) {
         return res.status(500).json(new apiResponse(500, "Internal Server Error", {}, error));

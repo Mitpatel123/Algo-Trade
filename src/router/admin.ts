@@ -19,8 +19,7 @@ router.post('/buytrade', tradeAction.buystock) //complete
 //sell trade API
 router.post('/selltrade', tradeAction.sellstock) //complete
 
-//set quantity API
-router.post('/quantity', tradeAction.getQuantity) //complete
+
 
 //request token get API
 router.post('/login', tradeAction.login) //complete
