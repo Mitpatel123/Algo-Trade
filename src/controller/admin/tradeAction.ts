@@ -11,6 +11,7 @@ import mongoose from "mongoose";
 import { Request, Response } from 'express'
 import jwt from "jsonwebtoken";
 import { ObjectId } from 'mongoose';
+import { csvTojson } from "../../database/model/csvTojson";
 
 const funddata = fund;
 const ObjectId = mongoose.Types.ObjectId
@@ -177,6 +178,38 @@ export const login = async (req: Request, res: Response) => {
         } else {
             return res.status(402).json(new apiResponse(402, "request token is required", {}, {}));
         }
+    } catch (error) {
+        return res.status(500).json(new apiResponse(500, "Internal Server Error", {}, error));
+    }
+}
+
+export const getBuyPayload = async (req: Request, res: Response) => {
+    try {
+
+        const { index, expiry, tradingsymbol } = req.body
+
+        const index_obj = await csvTojson.find();
+
+        const data = index_obj[0][index]
+
+        const unique_date = [...new Set(data.map(item => item.expiry))]
+
+        let filtered = data.filter((e) => {
+            return e.expiry == expiry
+        });
+
+        const symbol = [...new Set(filtered.map(item => item.tradingsymbol))]
+
+
+        let tradingsymbolfiltered = data.filter((e) => {
+            return e.tradingsymbol == tradingsymbol
+        });
+
+        const exchange_value = [...new Set(tradingsymbolfiltered.map(item => item.exchange))]
+
+
+        return res.status(200).json(new apiResponse(200, "index", exchange_value, {unique_date,symbol})); 
+
     } catch (error) {
         return res.status(500).json(new apiResponse(500, "Internal Server Error", {}, error));
     }

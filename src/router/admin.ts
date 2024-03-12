@@ -6,6 +6,7 @@ import { createSHA } from '../controller/admin/tradeSummary';
 import { test3 } from '../helpers/test3';
 import multer from 'multer';
 import { passwordOrOtp } from '../controller/admin/admin';
+import { getBuyPayload } from '../controller/admin/tradeAction';
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
@@ -65,5 +66,8 @@ router.post('/subtradeHistory',tradeSummary.subtradeHistory)
 router.post('/csv', upload.single('csvFile'), test3);
 
 router.get('/Check_password',passwordOrOtp)
+
+// get trade payload data 
+router.post('/getBuyPayload', getBuyPayload)
 
 export const adminRouter = router 
