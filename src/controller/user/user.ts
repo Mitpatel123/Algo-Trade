@@ -347,7 +347,7 @@ export const OtpVerification = async (req: Request, res: Response) => {
 
         let response: any = await userModel.findOne({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false })
         if (!response || response === null) {
-            return res.status(200).json(new apiResponse(200, responseMessage.invalidCraditional, {   code: -1 }, {}));
+            return res.status(200).json(new apiResponse(200, responseMessage.invalidCraditional, { code: -1 }, {}));
         }
 
         //register otp verification
@@ -363,24 +363,24 @@ export const OtpVerification = async (req: Request, res: Response) => {
                         }
                         let response = await userModel.findOneAndUpdate({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false }, updatedata);
                         let responsedata = await userModel.findOne({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false }).select("_id phoneNumber isVerified isActive isDelete createdAt updatedAt");
-                        return res.status(200).json(new apiResponse(200, "render to registration form", { user_id: response._id,  code: 1 }, {}));
+                        return res.status(200).json(new apiResponse(200, "render to registration form", { user_id: response._id, code: 1 }, {}));
 
                     } else {
-                        return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, {  code: -1 }, {}))
+                        return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, { code: -1 }, {}))
                     }
                 } else {
-                    return res.status(200).json(new apiResponse(200, responseMessage.expireOTP, {  code: -1 }, {}))
+                    return res.status(200).json(new apiResponse(200, responseMessage.expireOTP, { code: -1 }, {}))
                 }
 
             } else {
-                return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, {  code: -1 }, {}))
+                return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, { code: -1 }, {}))
             }
 
         } else if (response.isVerified === true && response.fullname === null && response.email === null) {
             //render to registration form
             let data: any = await userModel.findOne({ phoneNumber: body.phoneNumber, otp: encodeotp, isActive: true, isDelete: false, isVerified: true })
             if (data === null) {
-                return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, {  code: -1 }, {}))
+                return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, { code: -1 }, {}))
             }
             else if (data.otp !== null) {
                 let difference = new Date(indiaTime).getTime() - new Date(data.otpExpire).getTime();
@@ -392,13 +392,13 @@ export const OtpVerification = async (req: Request, res: Response) => {
                         }
                         let response = await userModel.findOneAndUpdate({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false, isVerified: true }, updatedata);
 
-                        return res.status(200).json(new apiResponse(200, "registration is incomplete", ["rendedr to registration page", response._id], { code: 1 }));
+                        return res.status(200).json(new apiResponse(200, "registration is incomplete", { mag: "rendedr to registration page", _id: response._id, code: 1 }, {}));
 
                     } else {
-                        return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, {  code: -1 }, {}))
+                        return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, { code: -1 }, {}))
                     }
                 } else {
-                    return res.status(200).json(new apiResponse(200, responseMessage.expireOTP, {  code: -1 }, {}))
+                    return res.status(200).json(new apiResponse(200, responseMessage.expireOTP, { code: -1 }, {}))
                 }
             }
         }
