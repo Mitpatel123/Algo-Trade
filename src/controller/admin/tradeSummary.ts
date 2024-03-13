@@ -11,6 +11,94 @@ let usTime = new Date()
 let options = { timeZone: 'Asia/kolkata', hour12: false }
 let indiaTime = usTime.toLocaleString('en-US', options)
 
+export const getBuy = async (req: Request, res: Response) => {
+    try {
+
+        const body = req.body;
+
+        if (body.type === 0) {
+
+            const getBuyData = await adminTrade.aggregate([
+                {
+                    $match: {
+                        $and: [
+                            { sellPrice: null },
+                            { sellAT: null }]
+                    }
+                },
+                {
+                    $project: {
+                        tradingsymbol: 1,
+                        buyPrice: 1,
+                        _id: 1
+                    }
+                }
+            ])
+
+            if (getBuyData.length !== 0) {
+                return res.status(200).json(new apiResponse(200, "Buy trade data", getBuyData, {}));
+            } else if (getBuyData.length === 0) {
+                return res.status(400).json(new apiResponse(400, "No any trade buy all the trade are salled", getBuyData, {}));
+            }
+
+            else {
+                return res.status(400).json(new apiResponse(400, "Not valid user", {}, {}));
+            }
+
+
+        }
+    } catch (error) {
+        return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+    }
+}
+export const getSell = async (req: Request, res: Response) => {
+    try {
+
+        const body = req.body;
+
+        if (body.type === 0) {
+
+            const getSellData = await adminTrade.aggregate([
+                {
+                    $match: {
+                        $and: [
+                            { sellPrice: { $ne: null } },
+                            { sellAT: { $ne: null } },
+                            { sellAT: { $regex: new RegExp("^" + body.date) } }
+                        ]
+                    }
+                },
+                {
+                    $project: {
+                        tradingsymbol: 1,
+                        buyPrice: 1,
+                        sellPrice: 1,
+                        _id: 1
+                    }
+                }
+            ])
+
+            console.log(getSellData);
+            if (getSellData.length !== 0) {
+                return res.status(200).json(new apiResponse(200, "Sell trade data", getSellData, {}));
+            } else if (getSellData.length === 0) {
+                return res.status(400).json(new apiResponse(400, "No nay trade buy yet", getSellData, {}));
+            }
+        } else {
+
+            return res.status(400).json(new apiResponse(400, "Not valid user", {}, {}));
+        }
+
+
+
+    } catch (error) {
+        return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+    }
+}
+
+
+
+
 export const get_user_quantity = async (req: Request, res: Response) => {
     const { filter, id } = req.body;
     console.log('👻👻', filter, id);

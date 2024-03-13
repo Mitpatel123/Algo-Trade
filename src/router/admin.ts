@@ -19,7 +19,11 @@ router.post('/buytrade', tradeAction.buystock) //complete
 //sell trade API
 router.post('/selltrade', tradeAction.sellstock) //complete
 
+//get buy trade
+router.get('/getbuytrade', tradeSummary.getBuy) //complete
 
+//get sell trade
+router.get('/getselltrade', tradeSummary.getSell) //complete
 
 //request token get API
 router.post('/login', tradeAction.login) //complete
@@ -34,37 +38,37 @@ router.get('/get_trade', tradeSummary.trade_get)
 router.get('/user_get_trade', tradeSummary.user_trade_get)
 
 //get profit and loss API
-router.get('/profit_loss',tradeSummary.profit_loss)
+router.get('/profit_loss', tradeSummary.profit_loss)
 
 //get total investment
-router.get('/total_investment',tradeSummary.totalInverstment)
+router.get('/total_investment', tradeSummary.totalInverstment)
 
 //get trade current market value
-router.get('/market_value',tradeSummary.marketValue)
+router.get('/market_value', tradeSummary.marketValue)
 
-router.get('/unlinkUserHistory',tradeSummary.getUnlinkUserHistory)
+router.get('/unlinkUserHistory', tradeSummary.getUnlinkUserHistory)
 
 //get kite login user data
-router.get('/getKiteLoginUserData',tradeSummary.getKiteLoginUserDetails)
+router.get('/getKiteLoginUserData', tradeSummary.getKiteLoginUserDetails)
 
 //get kite unlink user data
-router.get('/getKiteNotLoginUserData',tradeSummary.getKiteNotLoginUserDetails)
+router.get('/getKiteNotLoginUserData', tradeSummary.getKiteNotLoginUserDetails)
 
 //update kite link user data
-router.post('/updateKiteLoginUserData',tradeSummary.updateUserDetailsByAdmin)
+router.post('/updateKiteLoginUserData', tradeSummary.updateUserDetailsByAdmin)
 
 //block kite linked user
-router.post('/blockUser',tradeSummary.blockUserByAdmin)
+router.post('/blockUser', tradeSummary.blockUserByAdmin)
 
-router.post('/tradeHistory',tradeSummary.tradeHistory)
+router.post('/tradeHistory', tradeSummary.tradeHistory)
 
-router.get('/generate-sha256',createSHA)
+router.get('/generate-sha256', createSHA)
 
-router.post('/subtradeHistory',tradeSummary.subtradeHistory)
+router.post('/subtradeHistory', tradeSummary.subtradeHistory)
 
 router.post('/csv', upload.single('csvFile'), test3);
 
-router.get('/Check_password',passwordOrOtp)
+router.get('/Check_password', passwordOrOtp)
 
 // get trade payload data 
 router.post('/getBuyPayload', getBuyPayload)
