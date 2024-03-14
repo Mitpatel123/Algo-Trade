@@ -190,29 +190,42 @@ export const login = async (req: Request, res: Response) => {
 export const getBuyPayload = async (req: Request, res: Response) => {
     try {
 
+        const body = req.body;
+        console.log(body.expiry);
+        if (body === null || body === undefined || Object.keys(body).length === 0) {
+            return res.status(200).json(new apiResponse(200, "index", ["sensex", "finNifty", "midcpNifty", "nifty", "bankNifty"], {}));
+        } else if (body.index !== null && body.expiry === undefined) {
+            console.log("🙂🙂🙂🙂🙂🙂🙂🙂🙂");
+            const index_obj = await csvTojson.find();
+            // const data = index_obj[0][body.index]
+            console.log('index_obj :>> ', index_obj);
+            const data = index_obj[0]
+            console.log('data :>> ', data);
+            const unique_date = [...new Set(data.map(item => item.expiry))]
+            console.log('unique_date :>> ', unique_date);
+            let filtered = data.filter((e) => {
+                return e.expiry == expiry
+            });
+            return res.status(200).json(new apiResponse(200, "index", filtered, {}));
+
+        }
         const { index, expiry, tradingsymbol } = req.body
 
-        const index_obj = await csvTojson.find();
-
-        const data = index_obj[0][index]
-
-        const unique_date = [...new Set(data.map(item => item.expiry))]
-
-        let filtered = data.filter((e) => {
-            return e.expiry == expiry
-        });
-
-        const symbol = [...new Set(filtered.map(item => item.tradingsymbol))]
 
 
-        let tradingsymbolfiltered = data.filter((e) => {
-            return e.tradingsymbol == tradingsymbol
-        });
-
-        const exchange_value = [...new Set(tradingsymbolfiltered.map(item => item.exchange))]
 
 
-        return res.status(200).json(new apiResponse(200, "index", exchange_value, { unique_date, symbol }));
+        // const symbol = [...new Set(filtered.map(item => item.tradingsymbol))]
+
+
+        // let tradingsymbolfiltered = data.filter((e) => {
+        //     return e.tradingsymbol == tradingsymbol
+        // });
+
+        // const exchange_value = [...new Set(tradingsymbolfiltered.map(item => item.exchange))]
+
+
+        // return res.status(200).json(new apiResponse(200, "index", exchange_value, { unique_date, symbol }));
 
     } catch (error) {
         return res.status(500).json(new apiResponse(500, "Internal Server Error", {}, error));
