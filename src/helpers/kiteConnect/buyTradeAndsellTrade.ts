@@ -158,7 +158,7 @@ export const buyTradeFunction = async (req: Request, res: Response, userData: an
               price: body.price,
             };
 
-            // const buyData = await buy(data);
+            const buyData = await buy(data);
             const alluserdata = await userModel.findOneAndUpdate(
               {
                 _id: userData._id,
@@ -176,16 +176,15 @@ export const buyTradeFunction = async (req: Request, res: Response, userData: an
             returnObj = {
               user_id: new ObjectId(userData._id),
               tradingsymbol: body.tradingsymbol,
-              // buyOrderId: buyData.order_id,
-              buyOrderId: generateRandomNumber(),
+              buyOrderId: buyData.order_id,
+              // buyOrderId: generateRandomNumber(),
               quantity,
               isSelled: false,
               buyKitePrice: body.price,
               buyAT: indiaTime,
               accessToken: access_key,
               lessQuantity: false,
-              // buytradeStatus: buyData.status,
-              buytradeStatus: "success",
+              buytradeStatus: buyData.status,
               lastLoginAt: lastConnectionDetails.loginAt,
               lastLogOutAt: lastConnectionDetails.logoutAt,
             };
@@ -360,7 +359,7 @@ export const sellTradeFunction = async (req: Request, res: Response, userdata, b
                 product: body.product,
                 price: body.sellPrice
               };
-              // const returnSellData = await sell(sellrequireddata);
+              const returnSellData = await sell(sellrequireddata);
               const order_id = sellData.buyOrderId;
               const profit =
                 Number(sellData.quantity) *
@@ -376,19 +375,19 @@ export const sellTradeFunction = async (req: Request, res: Response, userdata, b
                     "trade.$.isSelled": true,
                     "trade.$.sellAt": indiaTime,
                     "trade.$.sellKitePrice": body.sellPrice,
-                    // "trade.$.sellOrderId": returnSellData.order_id,
-                    "trade.$.sellOrderId": generateRandomNumber(),
+                    "trade.$.sellOrderId": returnSellData.order_id,
+                    // "trade.$.sellOrderId": generateRandomNumber(),
                     "trade.$.profit": profit,
-                    // "trade.$.selltradeStatus": returnSellData.status,
-                    "trade.$.selltradeStatus": "success",
+                    "trade.$.selltradeStatus": returnSellData.status,
+                    // "trade.$.selltradeStatus": "success",
                     "trade.$.lastLoginAt": lastConnectionDetails.loginAt,
                     "trade.$.lastLogOutAt": lastConnectionDetails.logoutAt,
                   },
                 }
               );
 
-              await adminTrade.findOneAndUpdate({ _id: id }, { $set: { sellPrice: body.sellPrice, sellAT: indiaTime, sellOrderId: "123" } });
-              // await adminTrade.findOneAndUpdate({ _id: id }, { $set: { sellPrice: body.sellPrice, sellAT: indiaTime, sellOrderId: returnSellData.order_id } });
+              // await adminTrade.findOneAndUpdate({ _id: id }, { $set: { sellPrice: body.sellPrice, sellAT: indiaTime, sellOrderId: "123" } });
+              await adminTrade.findOneAndUpdate({ _id: id }, { $set: { sellPrice: body.sellPrice, sellAT: indiaTime, sellOrderId: returnSellData.order_id } });
               const data = await userTrade.findOne({
                 "trade.user_id": id,
                 "trade.buyOrderId": order_id,
