@@ -934,15 +934,15 @@ export const tradeHistory = async (req: Request, res: Response) => {
   try {
     const page = body.page || 1;
     const pageSize = 10;
-    let returnData;
+    let returnData = [];
     let data;
     const skip = (page - 1) * pageSize;
     let userData = await userModel.find(
-      {},
+      { z_user_id: { $ne: null } },
       { fullname: 1, email: 1, z_user_id: 1 }
     );
     console.log(userData);
-    if (body.tradeTime === null) {
+    if (body.startDate === null && body.endDate === null) {
       data = await userTrade.aggregate([
         {
           $unwind: "$trade",
@@ -960,19 +960,26 @@ export const tradeHistory = async (req: Request, res: Response) => {
           $limit: pageSize,
         },
       ]);
+      console.log(data);
+      if (data.length === 0) {
+        return res
+          .status(200)
+          .json(
+            new apiResponse(200, "No trade history found", { returnData }, {})
+          );
+      }
       returnData = data.map((data) => {
         let user = userData.find((user) => String(user._id) == data._id);
-
         return { user, data };
       });
-    } else if (body.tradeTime !== null) {
+    } else if (body.startDate !== null && body.endDate === null) {
       data = await userTrade.aggregate([
         {
           $unwind: "$trade",
         },
         {
           $match: {
-            tradeTime: body.tradeTime,
+            tradeTime: { $gte: body.startDate },
           },
         },
         {
@@ -988,6 +995,52 @@ export const tradeHistory = async (req: Request, res: Response) => {
           $limit: pageSize,
         },
       ]);
+      console.log(data);
+      if (data.length === 0) {
+        return res
+          .status(200)
+          .json(
+            new apiResponse(200, "No trade history found", { returnData }, {})
+          );
+      }
+      returnData = data.map((data) => {
+        let user = userData.find((user) => String(user._id) == data._id);
+        return { user, data };
+      });
+    } else if (body.startDate !== null && body.endDate !== null) {
+      data = await userTrade.aggregate([
+        {
+          $unwind: "$trade",
+        },
+        {
+          $match: {
+            tradeTime: {
+              $gte: body.startDate,
+              $lte: body.endDate,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$trade.user_id",
+            totalProfit: { $sum: "$trade.profit" },
+          },
+        },
+        {
+          $skip: skip,
+        },
+        {
+          $limit: pageSize,
+        },
+      ]);
+      console.log(data);
+      if (data.length === 0) {
+        return res
+          .status(200)
+          .json(
+            new apiResponse(200, "No trade history found", { returnData }, {})
+          );
+      }
       returnData = data.map((data) => {
         let user = userData.find((user) => String(user._id) == data._id);
         return { user, data };
@@ -1070,76 +1123,177 @@ export const subtradeHistory = async (req: Request, res: Response) => {
     const alltrade = [];
     let tradeData;
 
-    if (body.tradeTime === null) {
-      tradeData = await userTrade.find();
-    } else if (body.tradeTime !== null) {
-      tradeData = await userTrade.find({ tradeTime: body.tradeTime });
-      console.log("tradeData :>> ", tradeData);
-    }
-
-    const data = await userTrade.aggregate([
-      { $unwind: "$trade" },
-      {
-        $match: {
-          $or: [
-            { "trade.tradeTime": body.tradeTime },
-            { "trade.tradeTime": { $exists: false } },
-          ],
-          "trade.user_id": new ObjectId(body.id),
+    if (body.startDate === null && body.endDate === null) {
+      tradeData = await userTrade.aggregate([
+        { $unwind: "$trade" },
+        {
+          $match: {
+            "trade.user_id": new ObjectId(body.id),
+          },
         },
-      },
-      {
-        $project: {
-          _id: 0,
-          tradeTime: 1,
-          tradingsymbol: 1,
-          "trade.buyKitePrice": 1,
-          "trade.sellKitePrice": 1,
-          "trade.selltradeStatus": 1,
-          "trade.buytradeStatus": 1,
-          "trade.profit": 1,
+        {
+          $project: {
+            _id: 0,
+            tradeTime: 1,
+            tradingsymbol: 1,
+            "trade.buyKitePrice": 1,
+            "trade.sellKitePrice": 1,
+            "trade.selltradeStatus": 1,
+            "trade.buytradeStatus": 1,
+            "trade.profit": 1,
+          },
         },
-      },
-      {
-        $group: {
-          _id: null,
-          data: {
-            $push: {
-              $cond: {
-                if: {
-                  $and: [
-                    { $ne: ["$trade.buyKitePrice", 0] },
-                    { $eq: ["$trade.isSelled", false] },
-                  ],
-                },
-                then: {
-                  date: "$tradeTime",
-                  StockName: "$tradingsymbol",
-                  BuyPrice: "$trade.buyKitePrice",
-                  SellPrice: "-",
-                  BuyStatus: "$trade.buytradeStatus",
-                  SellStatus: "-",
-                  profit: "-",
-                },
-                else: {
-                  date: "$tradeTime",
-                  StockName: "$tradingsymbol",
-                  BuyPrice: "$trade.buyKitePrice",
-                  SellPrice: "$trade.sellKitePrice",
-                  BuyStatus: "$trade.buytradeStatus",
-                  SellStatus: "$trade.selltradeStatus",
-                  profit: "$trade.profit",
+        {
+          $group: {
+            _id: null,
+            data: {
+              $push: {
+                $cond: {
+                  if: {
+                    $and: [
+                      { $ne: ["$trade.buyKitePrice", 0] },
+                      { $eq: ["$trade.isSelled", false] },
+                    ],
+                  },
+                  then: {
+                    date: "$tradeTime",
+                    StockName: "$tradingsymbol",
+                    BuyPrice: "$trade.buyKitePrice",
+                    BuyStatus: "$trade.buytradeStatus",
+                  },
+                  else: {
+                    date: "$tradeTime",
+                    StockName: "$tradingsymbol",
+                    BuyPrice: "$trade.buyKitePrice",
+                    SellPrice: "$trade.sellKitePrice",
+                    BuyStatus: "$trade.buytradeStatus",
+                    SellStatus: "$trade.selltradeStatus",
+                    profit: "$trade.profit",
+                  },
                 },
               },
             },
           },
         },
-      },
-    ]);
+      ]);
+    } else if (body.startDate !== null && body.endDate === null) {
+      tradeData = await userTrade.aggregate([
+        { $unwind: "$trade" },
+        {
+          $match: {
+            tradeTime: {
+              $gte: body.startDate
+            },
+            "trade.user_id": new ObjectId(body.id),
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            tradeTime: 1,
+            tradingsymbol: 1,
+            "trade.buyKitePrice": 1,
+            "trade.sellKitePrice": 1,
+            "trade.selltradeStatus": 1,
+            "trade.buytradeStatus": 1,
+            "trade.profit": 1,
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            data: {
+              $push: {
+                $cond: {
+                  if: {
+                    $and: [
+                      { $ne: ["$trade.buyKitePrice", 0] },
+                      { $eq: ["$trade.isSelled", false] },
+                    ],
+                  },
+                  then: {
+                    date: "$tradeTime",
+                    StockName: "$tradingsymbol",
+                    BuyPrice: "$trade.buyKitePrice",
+                    BuyStatus: "$trade.buytradeStatus",
+                  },
+                  else: {
+                    date: "$tradeTime",
+                    StockName: "$tradingsymbol",
+                    BuyPrice: "$trade.buyKitePrice",
+                    SellPrice: "$trade.sellKitePrice",
+                    BuyStatus: "$trade.buytradeStatus",
+                    SellStatus: "$trade.selltradeStatus",
+                    profit: "$trade.profit",
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]);
+    }else if (body.startDate !== null && body.endDate !== null) {
+      tradeData = await userTrade.aggregate([
+        { $unwind: "$trade" },
+        {
+          $match: {
+            tradeTime: {
+              $gte: body.startDate,
+              $lte: body.endDate
+            },
+            "trade.user_id": new ObjectId(body.id),
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            tradeTime: 1,
+            tradingsymbol: 1,
+            "trade.buyKitePrice": 1,
+            "trade.sellKitePrice": 1,
+            "trade.selltradeStatus": 1,
+            "trade.buytradeStatus": 1,
+            "trade.profit": 1,
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            data: {
+              $push: {
+                $cond: {
+                  if: {
+                    $and: [
+                      { $ne: ["$trade.buyKitePrice", 0] },
+                      { $eq: ["$trade.isSelled", false] },
+                    ],
+                  },
+                  then: {
+                    date: "$tradeTime",
+                    StockName: "$tradingsymbol",
+                    BuyPrice: "$trade.buyKitePrice",
+                    BuyStatus: "$trade.buytradeStatus",
+                  },
+                  else: {
+                    date: "$tradeTime",
+                    StockName: "$tradingsymbol",
+                    BuyPrice: "$trade.buyKitePrice",
+                    SellPrice: "$trade.sellKitePrice",
+                    BuyStatus: "$trade.buytradeStatus",
+                    SellStatus: "$trade.selltradeStatus",
+                    profit: "$trade.profit",
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]);
+    }
 
     return res
       .status(200)
-      .json(new apiResponse(200, "trade history", { alltrade }, {}));
+      .json(new apiResponse(200, "trade history", { tradeData }, {}));
   } catch (error) {
     return res
       .status(500)
