@@ -86,6 +86,7 @@ export const getSell = async (req: Request, res: Response) => {
             buyPrice: 1,
             sellPrice: 1,
             _id: 1,
+            order_type: 1,
           },
         },
       ]);
@@ -1182,7 +1183,7 @@ export const subtradeHistory = async (req: Request, res: Response) => {
         {
           $match: {
             tradeTime: {
-              $gte: body.startDate
+              $gte: body.startDate,
             },
             "trade.user_id": new ObjectId(body.id),
           },
@@ -1232,14 +1233,14 @@ export const subtradeHistory = async (req: Request, res: Response) => {
           },
         },
       ]);
-    }else if (body.startDate !== null && body.endDate !== null) {
+    } else if (body.startDate !== null && body.endDate !== null) {
       tradeData = await userTrade.aggregate([
         { $unwind: "$trade" },
         {
           $match: {
             tradeTime: {
               $gte: body.startDate,
-              $lte: body.endDate
+              $lte: body.endDate,
             },
             "trade.user_id": new ObjectId(body.id),
           },

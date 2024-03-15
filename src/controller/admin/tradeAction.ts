@@ -81,14 +81,16 @@ export const buystock = async (req: Request, res: Response) => {
         { user_id: userData.id, [`${StockName}.symbol`]: StockName },
         { [`${StockName}`]: 1, _id: 0 }
       );
-      return buyTradeFunction(
-        req,
-        res,
-        userData,
-        body,
-        resultAdminTradeEnter,
-        quantityObj[StockName]
-      );
+      if (quantityObj !== null) {
+        return buyTradeFunction(
+          req,
+          res,
+          userData,
+          body,
+          resultAdminTradeEnter,
+          quantityObj[StockName]
+        );
+      }
     });
 
     const userTradeResults = await Promise.all(promises);
@@ -144,7 +146,7 @@ export const sellstock = async (req: Request, res: Response) => {
       isActive: true,
       isDelete: false,
       isVerified: true,
-      isKiteLogin : true
+      isKiteLogin: true,
     });
 
     const promises = alluserdata.map(async (userData) => {

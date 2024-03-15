@@ -29,7 +29,7 @@ export const buyTradeFunction = async (req: Request, res: Response, userData: an
 
     const { _id: id, access_key, isKiteLogin } = userData;
     const lastConnectionDetails = await LastConnectHistory.findOne({ user_id: userData._id });
-    if (quantityObj) {
+    if (quantityObj !== null) {
       const quantity = quantityObj.quantity;
       if (access_key && isKiteLogin === true) {
         if (body.order_type === "MARKET") {

@@ -15,7 +15,7 @@ const tradeQuantitySchema = new mongoose.Schema({
     finNifty: { type: arrayItemSchema },
     midcpNifty: { type: arrayItemSchema },
     nifty: { type: arrayItemSchema },
-    banknifty: { type: arrayItemSchema }
+    bankNifty: { type: arrayItemSchema }
 });
 
 export const tradeQuantity = mongoose.model<any>('TradeQuantity', tradeQuantitySchema);
