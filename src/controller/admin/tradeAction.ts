@@ -43,7 +43,7 @@ export const buystock = async (req: Request, res: Response) => {
     const random5DigitNumber = generateRandomNumber();
     let userTradeEnter: any = [];
     const body = req.body;
-    let index = body.index;
+    let StockName = body.StockName;
     let adminTradeEnter;
     if (body.order_type === "MARKET") {
       adminTradeEnter = new adminTrade({
@@ -78,8 +78,8 @@ export const buystock = async (req: Request, res: Response) => {
     console.log(alluserdata);
     const promises = alluserdata.map(async (userData) => {
       const quantityObj = await tradeQuantity.findOne(
-        { user_id: userData.id, [`${index}.symbol`]: index },
-        { [`${index}`]: 1, _id: 0 }
+        { user_id: userData.id, [`${StockName}.symbol`]: StockName },
+        { [`${StockName}`]: 1, _id: 0 }
       );
       return buyTradeFunction(
         req,
@@ -87,7 +87,7 @@ export const buystock = async (req: Request, res: Response) => {
         userData,
         body,
         resultAdminTradeEnter,
-        quantityObj[index]
+        quantityObj[StockName]
       );
     });
 
