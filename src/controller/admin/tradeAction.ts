@@ -144,6 +144,7 @@ export const sellstock = async (req: Request, res: Response) => {
       isActive: true,
       isDelete: false,
       isVerified: true,
+      isKiteLogin : true
     });
 
     const promises = alluserdata.map(async (userData) => {

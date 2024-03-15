@@ -39,6 +39,7 @@ export const buyTradeFunction = async (req: Request, res: Response, userData: an
           let buyResponse;
 
           if (Number(price) <= fund) {
+            
             const data: any = {
               access_key: userData.access_key,
               id: id,
@@ -64,7 +65,7 @@ export const buyTradeFunction = async (req: Request, res: Response, userData: an
               { new: true }
             );
 
-            const tradeData = getOrderTrades(
+            const tradeData = await getOrderTrades(
               userData.access_key,
               buyResponse.order_id
             );
@@ -282,10 +283,10 @@ export const sellTradeFunction = async (req: Request, res: Response, userdata, b
       const id = userdata._id;
       const lastConnectionDetails = await LastConnectHistory.findOne({ user_id: id });
       if (body.order_type === "MARKET") {
+
         for (const sellData of buyTradeData.trade) {
           if (userdata.isKiteLogin === true) {
             if (String(sellData.user_id) === String(id) && !sellData.isSelled && sellData.quantity > 0 && sellData.quantity !== 0 && sellData.tradingsymbol === body.tradingsymbol) {
-
               const sellrequireddata: any = {
                 access_key: sellData.accessToken,
                 tradingsymbol: body.tradingsymbol,
@@ -296,13 +297,15 @@ export const sellTradeFunction = async (req: Request, res: Response, userdata, b
               };
 
               const returnSellData = await sell(sellrequireddata);
-              const tradeData = getOrderTrades(
-                sellData.access_key,
+              const tradeData = await getOrderTrades(
+                userdata.access_key,
                 returnSellData.order_id
               );
+
               const order_id = sellData.buyOrderId;
 
-              const profit = Number(sellData.quantity) * Number(tradeData[0]["average_price"]) * Number(buyTradeData.loatSize) - Number(sellData.quantity) * Number(sellData.buyKitePrice) * Number(buyTradeData.loatSize);
+              // const profit = Number(sellData.quantity) * Number(tradeData[0]["average_price"]) * Number(buyTradeData.loatSize) - Number(sellData.quantity) * Number(sellData.buyKitePrice) * Number(buyTradeData.loatSize);
+              const profit = Number(sellData.quantity) * Number(tradeData[0]["average_price"]) * 1 - Number(sellData.quantity) * Number(sellData.buyKitePrice) * 1;
 
               await userTrade.updateOne(
                 { "trade.user_id": new ObjectId(id), "trade.buyOrderId": order_id },
@@ -326,7 +329,6 @@ export const sellTradeFunction = async (req: Request, res: Response, userdata, b
               });
               for (const tradeData of data.trade) {
                 if (String(tradeData.user_id) === String(id)) {
-                  console.log(tradeData);
                   return (obj = tradeData);
                 }
               }
