@@ -90,6 +90,7 @@ export const getSell = async (req: Request, res: Response) => {
             sellPrice: 1,
             _id: 1,
             order_type: 1,
+            stockName: 1
           },
         },
       ]);
