@@ -1355,3 +1355,127 @@ export const createSHA = async (req: Request, res: Response) => {
 
   return res.json({ checksum });
 };
+
+
+
+//get buy user trade(user dashboard)
+
+export const getbuyuserdashboard = async (req: Request, res: Response) => {
+  try {
+    const body = req.body;
+
+    const tradeData = await userTrade.aggregate([
+      { $unwind: "$trade" },
+      {
+        $match: {
+          "trade.user_id": new ObjectId(body.id),
+          "trade.buyAT": { $ne: null },
+          "trade.isSelled": false,
+          "trade.buyOrderId": { $ne: null },
+          "trade.buyKitePrice": { $ne: 0 },
+
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          tradeTime: 1,
+          tradingsymbol: 1,
+          stockName: 1,
+          "trade.buyKitePrice": 1
+        },
+      },
+      {
+        $group: {
+          _id: body.id,
+          data: {
+            $push: {
+              stockName: "$stokName",
+              tradingsymbol: "$tradingsymbol",
+              buyPrice: "$trade.buyKitePrice"
+            },
+          },
+        },
+      },
+    ]);
+
+    if (tradeData.length !== 0) {
+      return res
+        .status(200)
+        .json(new apiResponse(200, "trade history", { tradeData }, {}));
+    } else {
+      return res
+        .status(400)
+        .json(new apiResponse(400, "no any trade buy yet", {}, {}));
+
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json(
+        new apiResponse(500, responseMessage.internalServerError, {}, error)
+      );
+  }
+}
+export const getselluserdashboard = async (req: Request, res: Response) => {
+  try {
+    const body = req.body;
+
+    const tradeData = await userTrade.aggregate([
+      { $unwind: "$trade" },
+      {
+        $match: {
+          "trade.user_id": new ObjectId(body.id),
+          "trade.isSelled": true,
+          "trade.sellAt": { $ne: null },
+          "trade.buyKitePrice": { $ne: 0 },
+          "trade.sellKitePrice": { $ne: 0 },
+          "trade.buyOrderId": { $ne: null },
+          "trade.sellOrderId": { $ne: null },
+          tradeTime: { $regex: new RegExp("^" + body.date) }
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          tradeTime: 1,
+          tradingsymbol: 1,
+          stockName: 1,
+          "trade.buyKitePrice": 1,
+          "trade.sellKitePrice": 1,
+
+        },
+      },
+      {
+        $group: {
+          _id: body.id,
+          data: {
+            $push: {
+              stockName: "$stokName",
+              tradingsymbol: "$tradingsymbol",
+              buyPrice: "$trade.buyKitePrice",
+              sellPrice: "$trade.sellKitePrice",
+            },
+          },
+        },
+      },
+    ]);
+
+    if (tradeData.length !== 0) {
+      return res
+        .status(200)
+        .json(new apiResponse(200, "trade history", { tradeData }, {}));
+    } else {
+      return res
+        .status(400)
+        .json(new apiResponse(400, "no any trade sell yet", {}, {}));
+
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json(
+        new apiResponse(500, responseMessage.internalServerError, {}, error)
+      );
+  }
+}

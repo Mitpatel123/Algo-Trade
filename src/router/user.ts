@@ -25,6 +25,12 @@ router.post('/kitelogout', userController.kitelogout) //complete
 router.post('/buyPlan', planDetails.BuyPlan) //complete
 router.post('/req', test_1)
 
+//get buy trade
+router.post('/userBuyTrade', tradeSummary.getbuyuserdashboard) //complete
+
+//get sell trade
+router.post('/userSellTrade', tradeSummary.getselluserdashboard) //complete
+
 //set quantity API
 router.post('/quantity', tradeAction.getQuantity) //complete
 
