@@ -20,7 +20,7 @@ router.post('/buytrade', tradeAction.buystock) //complete
 router.post('/selltrade', tradeAction.sellstock) //complete
 
 //get buy trade
-router.get('/getbuytrade', tradeSummary.getBuy) //complete
+router.post('/getbuytrade', tradeSummary.getBuy) //complete
 
 //get sell trade
 router.get('/getselltrade', tradeSummary.getSell) //complete
