@@ -154,8 +154,7 @@ export const sellstock = async (req: Request, res: Response) => {
     const alluserdata = await userModel.find({
       isActive: true,
       isDelete: false,
-      isVerified: true,
-      isKiteLogin: true,
+      isVerified: true
     });
 
     const promises = alluserdata.map(async (userData) => {

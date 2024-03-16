@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { Request, Response } from "express";
 import { kitelogin } from "../test2";
 import { privateEncrypt } from "crypto";
+import { apiResponse } from "../../common";
 
 const funddata = fund;
 const ObjectId = mongoose.Types.ObjectId;
@@ -39,7 +40,7 @@ export const buyTradeFunction = async (req: Request, res: Response, userData: an
           let buyResponse;
 
           if (Number(price) <= fund) {
-            
+
             const data: any = {
               access_key: userData.access_key,
               id: id,
@@ -71,7 +72,7 @@ export const buyTradeFunction = async (req: Request, res: Response, userData: an
             );
             await adminTrade.findByIdAndUpdate(
               { _id: resultAdminTradeEnter._id },
-              { buyPrice: tradeData[0]["average_price"] ,quantity}
+              { buyPrice: tradeData[0]["average_price"], quantity }
             );
             returnObj = {
               user_id: new ObjectId(userData._id),
@@ -283,7 +284,7 @@ export const sellTradeFunction = async (req: Request, res: Response, userdata, b
       const id = userdata._id;
       const lastConnectionDetails = await LastConnectHistory.findOne({ user_id: id });
       if (body.order_type === "MARKET") {
-
+        console.log(userdata);
         for (const sellData of buyTradeData.trade) {
           if (userdata.isKiteLogin === true) {
             if (String(sellData.user_id) === String(id) && !sellData.isSelled && sellData.quantity > 0 && sellData.quantity !== 0 && sellData.tradingsymbol === body.tradingsymbol) {
@@ -307,7 +308,7 @@ export const sellTradeFunction = async (req: Request, res: Response, userdata, b
               // const profit = Number(sellData.quantity) * Number(tradeData[0]["average_price"]) * Number(buyTradeData.loatSize) - Number(sellData.quantity) * Number(sellData.buyKitePrice) * Number(buyTradeData.loatSize);
               const profit = Number(sellData.quantity) * Number(tradeData[0]["average_price"]) * 1 - Number(sellData.quantity) * Number(sellData.buyKitePrice) * 1;
 
-              await userTrade.updateOne(
+              const resdata = await userTrade.updateOne(
                 { "trade.user_id": new ObjectId(id), "trade.buyOrderId": order_id },
                 {
                   $set: {
@@ -322,6 +323,7 @@ export const sellTradeFunction = async (req: Request, res: Response, userdata, b
                   },
                 }
               );
+              console.log("resdata", resdata);
               await adminTrade.findOneAndUpdate({ _id: id }, { $set: { sellPrice: tradeData[0]["average_price"], sellAT: indiaTime, sellOrderId: returnSellData.order_id } });
               const data = await userTrade.findOne({
                 "trade.user_id": id,
@@ -415,6 +417,8 @@ export const sellTradeFunction = async (req: Request, res: Response, userdata, b
           }
         }
       }
+    } else {
+      return "this trade is not executed in any user account";
     }
   } catch (error) {
     return error;
