@@ -23,7 +23,7 @@ router.post('/selltrade', tradeAction.sellstock) //complete
 router.post('/getbuytrade', tradeSummary.getBuy) //complete
 
 //get sell trade
-router.get('/getselltrade', tradeSummary.getSell) //complete
+router.post('/getselltrade', tradeSummary.getSell) //complete
 
 //request token get API
 router.post('/login', tradeAction.login) //complete

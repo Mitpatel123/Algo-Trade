@@ -71,7 +71,7 @@ export const buyTradeFunction = async (req: Request, res: Response, userData: an
             );
             await adminTrade.findByIdAndUpdate(
               { _id: resultAdminTradeEnter._id },
-              { price: tradeData[0]["average_price"] }
+              { buyPrice: tradeData[0]["average_price"] ,quantity}
             );
             returnObj = {
               user_id: new ObjectId(userData._id),

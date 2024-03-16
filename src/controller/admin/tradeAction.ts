@@ -90,6 +90,15 @@ export const buystock = async (req: Request, res: Response) => {
           resultAdminTradeEnter,
           quantityObj[StockName]
         );
+      }else{
+        return buyTradeFunction(
+          req,
+          res,
+          userData,
+          body,
+          resultAdminTradeEnter,
+          null
+        );
       }
     });
 

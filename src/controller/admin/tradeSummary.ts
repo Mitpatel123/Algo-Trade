@@ -24,7 +24,7 @@ export const getBuy = async (req: Request, res: Response) => {
       const getBuyData = await adminTrade.aggregate([
         {
           $match: {
-            $and: [{ sellPrice: null }, { sellAT: null }],
+            $and: [{ sellPrice: null }, { sellAT: null }, { buyPrice: { $ne: null } }, { quantity: { $ne: null }, buyAT: { $ne: null } }],  
           },
         },
         {
