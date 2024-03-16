@@ -1,6 +1,6 @@
 import express from 'express'
 import { userValidation } from '../validation'
-import { tradeAction, userController, planDetails } from '../controller'
+import { tradeAction, userController, planDetails, tradeSummary } from '../controller'
 import { userJWT } from '../helpers/jwt'
 import { test_1 } from '../controller/admin/tradeSummary'
 import { testkite } from '../helpers/test2'
@@ -28,6 +28,8 @@ router.post('/req', test_1)
 //set quantity API
 router.post('/quantity', tradeAction.getQuantity) //complete
 
+//get quantity API
+router.post('/user_quantity', tradeSummary.get_user_quantity)
 
 //delete user
 router.delete('/delete', userValidation.deletes, userController.deleteuser) //complete

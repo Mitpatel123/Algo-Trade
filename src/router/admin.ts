@@ -28,8 +28,7 @@ router.post('/getselltrade', tradeSummary.getSell) //complete
 //request token get API
 router.post('/login', tradeAction.login) //complete
 
-//get quantity API
-router.get('/user_quantity', tradeSummary.get_user_quantity)
+
 
 //get all trade which is not sell
 router.get('/get_trade', tradeSummary.trade_get)
