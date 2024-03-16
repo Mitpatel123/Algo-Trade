@@ -49,6 +49,7 @@ export const buystock = async (req: Request, res: Response) => {
       adminTradeEnter = new adminTrade({
         tradingsymbol: body.tradingsymbol,
         exchange: body.exchange,
+        stockName: body.StockName,
         transaction_type: body.transaction_type,
         order_type: body.order_type,
         product: body.product,
@@ -59,6 +60,7 @@ export const buystock = async (req: Request, res: Response) => {
         tradingsymbol: body.tradingsymbol,
         exchange: body.exchange,
         transaction_type: body.transaction_type,
+        stockName: body.StockName,
         order_type: body.order_type,
         product: body.product,
         buyPrice: body.price,
@@ -90,7 +92,7 @@ export const buystock = async (req: Request, res: Response) => {
           resultAdminTradeEnter,
           quantityObj[StockName]
         );
-      }else{
+      } else {
         return buyTradeFunction(
           req,
           res,

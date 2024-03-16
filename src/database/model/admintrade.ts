@@ -6,6 +6,7 @@ console.log('👻👻indianTime', indiaTime)
 
 const adminTradeSchema = new mongoose.Schema({
     tradingsymbol: { type: String, default: null },
+    stockName: { type: String, default: null },
     exchange: { type: String, default: null },
     transaction_type: { type: String, default: null },
     order_type: { type: String, default: null },
