@@ -354,6 +354,7 @@ export const OtpVerification = async (req: Request, res: Response) => {
         if (response.isVerified === false) {
             let data: any = await userModel.findOne({ phoneNumber: body.phoneNumber, otp: encodeotp, isActive: true, isDelete: false })
             if (data) {
+                let data: any = await userModel.findOne({ phoneNumber: body.phoneNumber, otp: encodeotp, isActive: true, isDelete: false })
                 let difference = new Date(indiaTime).getTime() - new Date(data.otpExpire).getTime();
                 let response = await userModel.findOneAndUpdate({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false }, { difference });
                 if (difference <= 600000000) {
@@ -363,7 +364,7 @@ export const OtpVerification = async (req: Request, res: Response) => {
                         }
                         let response = await userModel.findOneAndUpdate({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false }, updatedata);
                         let responsedata = await userModel.findOne({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false }).select("_id phoneNumber isVerified isActive isDelete createdAt updatedAt");
-                        return res.status(200).json(new apiResponse(200, "render to registration form", { user_id: response._id, code: 1 }, {}));
+                        return res.status(200).json(new apiResponse(200, "render to registration form", { user_id: response._id, code: 1 , userType :data.role}, {}));
 
                     } else {
                         return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, { code: -1 }, {}))
@@ -392,7 +393,7 @@ export const OtpVerification = async (req: Request, res: Response) => {
                         }
                         let response = await userModel.findOneAndUpdate({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false, isVerified: true }, updatedata);
 
-                        return res.status(200).json(new apiResponse(200, "registration is incomplete", { mag: "rendedr to registration page", _id: response._id, code: 1 }, {}));
+                        return res.status(200).json(new apiResponse(200, "registration is incomplete", { mag: "rendedr to registration page", _id: response._id, code: 1 ,userType :data.role}, {}));
 
                     } else {
                         return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, { code: -1 }, {}))
@@ -406,7 +407,7 @@ export const OtpVerification = async (req: Request, res: Response) => {
         else if (response.isVerified === true) {//login otp verification
             let data: any = await userModel.findOne({ phoneNumber: body.phoneNumber, otp: encodeotp, isActive: true, isDelete: false, isVerified: true })
             if (data) {
-
+                let data: any = await userModel.findOne({ phoneNumber: body.phoneNumber, otp: encodeotp, isActive: true, isDelete: false, isVerified: true })
                 let difference = new Date(indiaTime).getTime() - new Date(data.otpExpire).getTime();
                 var email = "mitdobariya69@gmail.com";
                 sendEmailHelper(email, difference);
@@ -435,7 +436,8 @@ export const OtpVerification = async (req: Request, res: Response) => {
                         let response = await userModel.findOneAndUpdate({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false, isVerified: true }, updatedata);
                         let responsedata = await userModel.findOne({ phoneNumber: body.phoneNumber, isActive: true, isDelete: false, isVerified: true }).select("_id phoneNumber isVerified isActive isDelete createdAt updatedAt");
 
-                        return res.status(200).json(new apiResponse(200, responseMessage.loginSuccess, { responsedata, token, refresh_token, code: 1 }, {}));
+                         console.log('responsedata :>>>>>>>>> ', data.role);
+                        return res.status(200).json(new apiResponse(200, responseMessage.loginSuccess, { responsedata, token, refresh_token, code: 1 , userType : data.role}, {}));
 
                     } else {
                         return res.status(200).json(new apiResponse(200, responseMessage.invalidOTP, { code: -1 }, {}))
