@@ -459,10 +459,33 @@ export const OtpVerification = async (req: Request, res: Response) => {
 //update user
 
 export const updateUser = async (req: Request, res: Response) => {
+    console.log('>>>>>>>>>>>>> updateUser :>> ', )
     try {
         const body = req.body;
+        console.log('body :>> ', body);
+        const data = await userModel.findOne({ _id:new ObjectId(body.id), isActive: true, isDelete: false });
+        console.log('data :>> ', data);
+        if (data) {
+            let updatedata = {
+                isVerified: true, otp: null
+            }
+            const updateuser = await userModel.findByIdAndUpdate({ _id: body.id, isActive: true, isVerified: true, isDeleted: false }, { $set: body,updatedata }, { new: true });
+            return res.status(200).json(new apiResponse(200, responseMessage.signupSuccess, updateuser, {}))
+        } else {
+            return res.status(401).json(new apiResponse(401, responseMessage.invalidCraditional, {}, {}))
+        }
 
-        const data = await userModel.findOne({ _id: body.id, isActive: true, isVerified: true, isDelete: false });
+    } catch (error) {
+        return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error))
+    }
+}
+export const updateUserforadmin = async (req: Request, res: Response) => {
+    console.log('>>>>>>>>>>>>> updateUser :>> ', )
+    try {
+        const body = req.body;
+        console.log('body :>> ', body);
+        const data = await userModel.findOne({ _id:new ObjectId(body.id), isActive: true, isVerified: true, isDelete: false });
+        console.log('data :>> ', data);
         if (data) {
             const updateuser = await userModel.findByIdAndUpdate({ _id: body.id, isActive: true, isVerified: true, isDeleted: false }, { $set: body }, { new: true });
             return res.status(200).json(new apiResponse(200, responseMessage.signupSuccess, updateuser, {}))
