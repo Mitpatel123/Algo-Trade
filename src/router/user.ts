@@ -18,7 +18,7 @@ router.post('/signup', userValidation.signUp, userController.signUp) //complete
 router.post('/otpverification', userValidation.verificationOtp, userController.OtpVerification) //complete
 
 //update user details
-router.patch('/updateuser', userValidation.updateuser, userController.updateUser) //complete
+router.post('/updateuser', userValidation.updateuser, userController.updateUser) //complete
 
 router.post('/kitelogout', userController.kitelogout) //complete
 // router.use(userJWT)
