@@ -46,6 +46,7 @@ export const buystock = async (req: Request, res: Response) => {
     let StockName = body.StockName;
     let adminTradeEnter;
     if (body.order_type === "MARKET") {
+      //this if else data save market Or price for buy adminTradeEnter  
       adminTradeEnter = new adminTrade({
         tradingsymbol: body.tradingsymbol,
         exchange: body.exchange,
@@ -68,7 +69,7 @@ export const buystock = async (req: Request, res: Response) => {
       });
     }
 
-    const resultAdminTradeEnter = await adminTradeEnter.save();
+    const resultAdminTradeEnter = await adminTradeEnter.save();  //save trade for admintarde entery
     console.log(resultAdminTradeEnter);
     const alluserdata = await userModel.find({
       isActive: true,
@@ -77,7 +78,6 @@ export const buystock = async (req: Request, res: Response) => {
       role: 1,
       $expr: { $lt: ["$totalUsePlan", "$plan"] },
     });
-    console.log(alluserdata);
     const promises = alluserdata.map(async (userData) => {
       const quantityObj = await tradeQuantity.findOne(
         { user_id: userData.id, [`${StockName}.symbol`]: StockName },

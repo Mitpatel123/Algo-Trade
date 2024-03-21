@@ -260,7 +260,7 @@ export const signUp = async (req: Request, res: Response) => {
 
                 const encryptedCode = await encryptData(OTPCode)
                 const bodyData = {
-                    ...body,
+                    ...body.phoneNumber,
                     otp: encryptedCode,
                     otpExpire: new Date()
                 };

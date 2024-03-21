@@ -1042,9 +1042,9 @@ export const tradeHistory = async (req: Request, res: Response) => {
       if (data.length === 0) {
         return res
           .status(200)
-          .json(
+          .json( 
             new apiResponse(200, "No trade history found", { returnData }, {})
-          );
+          ); 
       }
       returnData = data.map((data) => {
         let user = userData.find((user) => String(user._id) == data._id);
