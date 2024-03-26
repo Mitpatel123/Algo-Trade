@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "-": "^0.0.1",
+    "@aws-sdk/client-s3": "^3.540.0",
     "@types/moment-timezone": "^0.5.30",
     "@types/multer": "^1.4.11",
     "@vercel/speed-insights": "^1.0.9",
@@ -49,6 +50,7 @@
     "multer-s3-transform": "^2.10.3",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.8",
+    "sharp": "^0.33.3",
     "tsc": "^2.0.4",
     "tsc-watch": "^6.0.0",
     "uuid": "^9.0.0",

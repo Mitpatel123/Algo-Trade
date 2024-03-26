@@ -5,6 +5,7 @@ import {
   userModel,
   userTrade,
   tradeQuantity,
+  userTicket,
 } from "../../database";
 import { apiResponse } from "../../common";
 
@@ -389,3 +390,33 @@ export const getBuyPayload = async (req: Request, res: Response) => {
       .json(new apiResponse(500, "Internal Server Error", {}, error));
   }
 };
+
+
+// update ticket
+
+export const updateTicket = async (req: Request, res: Response) => {
+  try {
+
+      const body = req.body
+      const ticket_id = body.ticket_id
+      const user_id = body.user_id
+
+      const userData = await userModel.findById({ _id: new ObjectId(user_id) });
+
+      if (!userData) {
+          return res.status(404).json(new apiResponse(404, "user not found", {}, {}));
+      }
+
+      if (userData.role === 0) { 
+          const response = await userTicket.findByIdAndUpdate(ticket_id, { status: body.status, response: body.response, updatedAt: indiaTime }, { new: true, })
+      } else {
+          return res.status(404).json(new apiResponse(404, "you are not admin, you can not access", {}, {}));
+      }
+
+      return res.status(200).json(new apiResponse(200, responseMessage.success, {}, {}));
+
+  } catch (error) {
+      return res.status(500).json(new apiResponse(500, "Internal Server Error", {}, error));
+  }
+}
+

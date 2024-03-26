@@ -58,5 +58,6 @@ app.get('/isServerUp', (req, res) => { res.send('Server is running ') });
 app.use(router);
 app.use('*', bad_gateway);
 
+
 let server = new http.Server(app);
 export default server;

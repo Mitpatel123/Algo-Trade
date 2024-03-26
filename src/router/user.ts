@@ -1,6 +1,6 @@
 import express from 'express'
 import { userValidation } from '../validation'
-import { tradeAction, userController, planDetails, tradeSummary } from '../controller'
+import { tradeAction, userController, planDetails, tradeSummary, ticketDetails } from '../controller'
 import { userJWT } from '../helpers/jwt'
 import { test_1 } from '../controller/admin/tradeSummary'
 import { testkite } from '../helpers/test2'
@@ -48,6 +48,13 @@ router.post('/getzeroghadata', userController.getUser) //complete
 router.get('/generate-sha256')
 router.post('/req', test_1)
 router.post('/test1', testkite)
+
+//ticket
+router.post('/userTicket',userValidation.addTicket, ticketDetails.addTicket)
+
+router.get('/getUserTicket', userValidation.getTicket, ticketDetails.getTicket)
+
+router.get('/getTicketById/:id', ticketDetails.getTicketById)
 
 // router.use(userJWT)
 export const userRouter = router

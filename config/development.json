@@ -10,6 +10,18 @@
   },
   "salt": 10,
 
+  "aws": {
+    "accessKeyId": "",
+    "secretAccessKey": "",
+    "region": "ap-south-1",
+    "bucketURL": "",
+    "bucket_name": "patramkids"
+  },
+ 
+  "Winston": {
+    "level": ""
+  },
+ 
   "jwt_token_secret": "algo_trade_jwt_token_secret_key",
   "refresh_jwt_token_secret": "algo_trade_refresh_jwt_token_secret_key"
 }

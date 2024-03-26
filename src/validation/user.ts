@@ -100,3 +100,51 @@ export const by_id = async (req: Request, res: Response, next: any) => {
     })
 }
 
+
+export const addTicket = async (req: Request, res: Response, next: any) => {
+    const schema = Joi.object({
+        user_id: Joi.string().required().error(new Error('usre_id is required')),
+        subject: Joi.string().required().error(new Error('subject is required')),
+        category: Joi.string().required().error(new Error('category is required!')),
+        message: Joi.string().error(new Error('message is string!'))
+    })
+    schema.validateAsync(req.body).then(async result => {
+        req.body = result
+        return next()
+    }).catch(async error => {
+        res.status(400).json(await new apiResponse(400, error.message, {}, {}))
+    })
+}
+
+export const getTicket = async (req: Request, res: Response, next: any) => {
+    const schema = Joi.object({
+        user_id: Joi.string().required().error(new Error('user_id is required')),
+        ticket_id: Joi.string().error(new Error('ticket_id is string')),
+        category: Joi.string().error(new Error('category is string')),
+        start_date: Joi.string().error(new Error('start_date is string')),
+        end_date: Joi.string().error(new Error('end_date is string')),
+    })
+    schema.validateAsync(req.body).then(async result => {
+        req.body = result
+        return next()
+    }).catch(async error => {
+        res.status(400).json(await new apiResponse(400, error.message, {}, {}))
+    })
+}
+
+
+export const updateTicket = async (req: Request, res: Response, next: any) => {
+    const schema = Joi.object({
+        user_id: Joi.string().required().error(new Error('user_id is required')),
+        ticket_id: Joi.string().required().error(new Error('ticket_id is required')),
+        status: Joi.string().valid("on hold", "painding", "cancel", "in progress").required().error(new Error('status is required')),
+        response: Joi.string().required().error(new Error('response is required!')),
+    })
+    schema.validateAsync(req.body).then(async result => {
+        req.body = result
+        return next()
+    }).catch(async error => {
+        res.status(400).json(await new apiResponse(400, error.message, {}, {}))
+    })
+}
+
